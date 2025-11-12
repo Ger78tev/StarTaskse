@@ -1,11 +1,8 @@
-import mysql.connector
-import os
-
-def get_connection():
-    return mysql.connector.connect(
-        host=os.getenv("MYSQLHOST", "localhost"),
-        user=os.getenv("MYSQLUSER", "root"),
-        password=os.getenv("MYSQLPASSWORD", ""),
-        database=os.getenv("MYSQLDATABASE", "startask"),
-        port=int(os.getenv("MYSQLPORT", 3306))
-    )
+# [file name]: database_config.py
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root', 
+    'password': '',  # Tu contraseña de MySQL
+    'database': 'startask',
+    'charset': 'utf8mb4'
+}
