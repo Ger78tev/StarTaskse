@@ -1,32 +1,38 @@
+# [file name]: database.py
+# [CORRECCIÓN PARA RAILWAY]
 import mysql.connector
 from mysql.connector import Error
 import os
 
 class Database:
     def __init__(self):
-        # Configuración para Railway con variables de entorno
+        # ⚠️ CORRECCIÓN: Usar variables de entorno específicas de Railway
         self.config = {
-            'host': os.environ.get('DB_HOST', 'localhost'),
-            'user': os.environ.get('DB_USER', 'root'),
-            'password': os.environ.get('DB_PASSWORD', ''),
-            'database': os.environ.get('DB_NAME', 'startask'),
-            'port': int(os.environ.get('DB_PORT', '3306')),
+            'host': os.environ.get('MYSQLHOST', 'localhost'),
+            'user': os.environ.get('MYSQLUSER', 'root'),
+            'password': os.environ.get('MYSQLPASSWORD', ''),
+            'database': os.environ.get('MYSQLDATABASE', 'startask'),
+            'port': int(os.environ.get('MYSQLPORT', '3306')),
             'charset': 'utf8mb4',
             'collation': 'utf8mb4_unicode_ci',
-            'connect_timeout': 30
+            'connect_timeout': 30,
+            'autocommit': True
         }
+        print(f"🔧 Configuración DB: host={self.config['host']}, db={self.config['database']}")
     
     def conectar(self):
         """Establece conexión con la base de datos MySQL"""
         try:
             connection = mysql.connector.connect(**self.config)
             if connection.is_connected():
-                print("✅ Conectado a MySQL en Railway")
+                print(f"✅ Conectado a MySQL en {self.config['host']}")
                 return connection
         except Error as e:
             print(f"❌ Error conectando a MySQL: {e}")
-            # En Railway, no podemos crear la BD automáticamente
+            print(f"🔧 Config usada: {self.config['host']}:{self.config['port']}, user: {self.config['user']}, db: {self.config['database']}")
             return None
+
+    # ... resto del código se mantiene igual ...
     
     # ... (el resto del código se mantiene igual)
     
@@ -325,4 +331,5 @@ def inicializar_base_datos():
 
 # Si se ejecuta este archivo directamente, inicializar la base de datos
 if __name__ == "__main__":
+
     inicializar_base_datos()
