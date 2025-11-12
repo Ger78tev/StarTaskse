@@ -1,0 +1,81 @@
+/* [file name]: registro.css */
+/* static/css/registro.css */
+.registro-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.registro-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 450px;
+}
+
+.dark-mode .registro-card {
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.password-strength {
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 8px;
+    transition: all 0.3s ease;
+    width: 0%;
+}
+
+.strength-weak { 
+    background: linear-gradient(90deg, #dc3545, #e35d6a);
+    width: 25%; 
+}
+
+.strength-fair { 
+    background: linear-gradient(90deg, #ffc107, #ffd54f);
+    width: 50%; 
+}
+
+.strength-good { 
+    background: linear-gradient(90deg, #28a745, #4caf50);
+    width: 75%; 
+}
+
+.strength-strong { 
+    background: linear-gradient(90deg, #20c997, #4cdbc4);
+    width: 100%; 
+}
+
+.registro-logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.registro-logo .logo-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 28px;
+    color: white;
+    box-shadow: 0 8px 32px rgba(123, 58, 237, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .registro-card {
+        padding: 30px 20px;
+        margin: 10px;
+    }
+}

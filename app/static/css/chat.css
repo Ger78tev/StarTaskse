@@ -1,0 +1,210 @@
+/* [file name]: chat.css */
+/* static/css/chat.css */
+.chat-container {
+    display: grid;
+    gap: 24px;
+}
+
+.mensajes-container {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.mensajes-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-light);
+    background: #fafafa;
+}
+
+.dark-mode .mensajes-header {
+    background: #1e293b;
+}
+
+.mensajes-list {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mensaje-item {
+    display: flex;
+    gap: 12px;
+    max-width: 80%;
+}
+
+.mensaje-item.propio {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.mensaje-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.mensaje-content {
+    flex: 1;
+}
+
+.mensaje-item.propio .mensaje-content {
+    text-align: right;
+}
+
+.mensaje-bubble {
+    background: var(--bg-light);
+    padding: 12px 16px;
+    border-radius: 18px;
+    display: inline-block;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.mensaje-item.propio .mensaje-bubble {
+    background: var(--primary);
+    color: white;
+}
+
+.mensaje-info {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mensaje-item.propio .mensaje-info {
+    justify-content: flex-end;
+}
+
+.mensaje-form-container {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    padding: 24px;
+}
+
+.mensaje-form {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.mensaje-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    resize: none;
+    min-height: 60px;
+    font-family: inherit;
+}
+
+.mensaje-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(123, 58, 237, 0.1);
+}
+
+.mensaje-chars {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.miembros-container {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    padding: 24px;
+}
+
+.miembros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.miembro-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.miembro-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.miembro-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.miembro-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.miembro-nombre {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.miembro-rol {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .mensaje-item {
+        max-width: 90%;
+    }
+    
+    .miembros-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .mensaje-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

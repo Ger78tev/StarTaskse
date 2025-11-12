@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Error del Servidor{% endblock %}
+
+{% block content %}
+<div class="container-fluid text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="error-container">
+                <i class="fas fa-server fa-5x text-danger mb-4"></i>
+                <h1 class="display-4 fw-bold text-dark">500</h1>
+                <h2 class="h3 text-muted mb-4">Error del Servidor</h2>
+                <p class="text-muted mb-4">
+                    Ha ocurrido un error interno en el servidor. Por favor, intenta nuevamente.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('dashboard.tablero') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Ir al Tablero
+                    </a>
+                    <button onclick="location.reload()" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo me-2"></i>Reintentar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

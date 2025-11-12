@@ -1,0 +1,625 @@
+{% extends "base.html" %}
+
+{% block title %}Tablero Principal{% endblock %}
+{% block page_title %}Tablero Principal{% endblock %}
+{% block page_subtitle %}Resumen general de proyectos y tareas{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Estadísticas Principales -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-project-diagram"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ total_proyectos }}</div>
+                <div class="stat-label">Proyectos Activos</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 12% vs último mes
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ total_tareas }}</div>
+                <div class="stat-label">Total Tareas</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 8% vs última semana
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ tareas_completadas }}</div>
+                <div class="stat-label">Tareas Completadas</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 15% completadas
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ total_usuarios }}</div>
+                <div class="stat-label">Miembros del Equipo</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 3 activos
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progreso General -->
+    <div class="card mb-6">
+        <div class="card-header">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-chart-line"></i>
+                <div>
+                    <div class="card-title">Progreso General</div>
+                    <div class="card-subtitle">Estado general de finalización de tareas</div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ "%.1f"|format((metricas.tareas_completadas / metricas.tareas_totales * 100) if metricas.tareas_totales > 0 else 0) }}%
+                </span>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Tasa de finalización</span>
+            </div>
+            <div class="metric-bar">
+                <div class="metric-progress progress-completada" 
+                     style="width: {{ (metricas.tareas_completadas / metricas.tareas_totales * 100) if metricas.tareas_totales > 0 else 0 }}%">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-columns mb-6">
+        <!-- Proyectos Recientes -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <i class="fas fa-project-diagram"></i>
+                        <div>
+                            <div class="card-title">Proyectos Recientes</div>
+                            <div class="card-subtitle">Últimos proyectos creados</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('proyecto.listar_proyectos') }}" class="btn btn-secondary btn-sm">
+                        Ver Todos
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if proyectos_recientes %}
+                    <div class="space-y-4">
+                        {% for proyecto in proyectos_recientes %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div>
+                                    <div class="font-medium text-gray-900 dark:text-white">{{ proyecto.nombre }}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                                        Líder: {{ proyecto.lider_nombre }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ proyecto.fecha_creacion.strftime('%d/%m/%Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-project-diagram text-4xl mb-3"></i>
+                        <p>No hay proyectos activos</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tareas Recientes -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <i class="fas fa-tasks"></i>
+                        <div>
+                            <div class="card-title">Tareas Recientes</div>
+                            <div class="card-subtitle">Últimas tareas del equipo</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('tarea.listar_tareas') }}" class="btn btn-secondary btn-sm">
+                        Ver Todas
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if mis_tareas %}
+                    <div class="space-y-3">
+                        {% for tarea in mis_tareas %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-gray-900 dark:text-white truncate">
+                                    {{ tarea.titulo }}
+                                </div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400 truncate">
+                                    {{ tarea.descripcion[:60] }}{% if tarea.descripcion|length > 60 %}...{% endif %}
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <span class="badge badge-{{ 
+                                    'success' if tarea.estado == 'completada' 
+                                    else 'warning' if tarea.estado == 'en_progreso' 
+                                    else 'info' 
+                                }}">
+                                    {{ tarea.estado|replace('_', ' ')|title }}
+                                </span>
+                                <span class="badge badge-{{ 
+                                    'danger' if tarea.prioridad == 'alta' 
+                                    else 'warning' if tarea.prioridad == 'media' 
+                                    else 'info' 
+                                }}">
+                                    {{ tarea.prioridad|title }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-tasks text-4xl mb-3"></i>
+                        <p>No hay tareas recientes</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas de Progreso -->
+    <div class="metrics-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-chart-pie"></i>
+                    <div class="card-title">Distribución de Tareas</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="distribution-container">
+                    <div class="distribution-item">
+                        <div class="distribution-info">
+                            <span class="distribution-label">Pendientes</span>
+                            <span class="distribution-value">{{ metricas.tareas_pendientes }}</span>
+                        </div>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill pendiente" 
+                                 style="width: {{ (metricas.tareas_pendientes / metricas.tareas_totales * 100) if metricas.tareas_totales > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="distribution-item">
+                        <div class="distribution-info">
+                            <span class="distribution-label">En Progreso</span>
+                            <span class="distribution-value">{{ metricas.tareas_en_progreso }}</span>
+                        </div>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill progreso" 
+                                 style="width: {{ (metricas.tareas_en_progreso / metricas.tareas_totales * 100) if metricas.tareas_totales > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="distribution-item">
+                        <div class="distribution-info">
+                            <span class="distribution-label">Completadas</span>
+                            <span class="distribution-value">{{ metricas.tareas_completadas }}</span>
+                        </div>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill completada" 
+                                 style="width: {{ (metricas.tareas_completadas / metricas.tareas_totales * 100) if metricas.tareas_totales > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-bolt"></i>
+                    <div class="card-title">Acciones Rápidas</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="quick-actions">
+                    {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+                    <a href="{{ url_for('proyecto.listar_proyectos') }}" class="quick-action-item">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <span class="quick-action-text">Crear Nuevo Proyecto</span>
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('tarea.listar_tareas') }}" class="quick-action-item">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <span class="quick-action-text">Gestionar Tareas</span>
+                    </a>
+                    
+                    <a href="{{ url_for('chat.chat_team') }}" class="quick-action-item">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <span class="quick-action-text">Chat del Equipo</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-server"></i>
+                    <div class="card-title">Estado del Sistema</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="system-status">
+                    <div class="status-item">
+                        <span class="status-label">Base de Datos</span>
+                        <span class="status-value">
+                            <span class="badge badge-success">Conectada</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Servidor Web</span>
+                        <span class="status-value">
+                            <span class="badge badge-success">En Línea</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Usuarios Activos</span>
+                        <span class="status-value">
+                            <span class="badge badge-primary">{{ total_usuarios }}</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Tiempo Activo</span>
+                        <span class="status-value">24/7</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Espaciado general mejorado */
+.dashboard-grid {
+    display: grid;
+    gap: 32px;
+}
+
+.dashboard-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* ESPACIADO MEJORADO ENTRE ICONOS Y TÍTULOS */
+.flex.items-center.gap-4 {
+    gap: 1rem !important; /* 16px de espacio entre icono y texto */
+}
+
+/* Asegurar que todos los encabezados tengan buen espaciado */
+.card-header .flex.items-center {
+    gap: 1rem !important;
+}
+
+/* Espaciado adicional para contenedores verticales */
+.mb-6 {
+    margin-bottom: 32px !important;
+}
+
+/* Espaciado interno mejorado para las tarjetas */
+.card {
+    margin-bottom: 0;
+}
+
+.card-body {
+    padding: 24px;
+}
+
+/* DISTRIBUCIÓN DE TAREAS - COMPLETAMENTE REPARADO */
+.distribution-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.distribution-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.distribution-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.distribution-label {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.distribution-value {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.distribution-bar {
+    width: 100%;
+    height: 12px;
+    background-color: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.distribution-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.5s ease-in-out;
+    min-width: 8px;
+}
+
+.distribution-fill.pendiente {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.distribution-fill.progreso {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.distribution-fill.completada {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* Estado del Sistema - Alineación correcta */
+.system-status {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.status-value {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Asegurar que los badges tengan EXACTAMENTE los mismos colores y bordes que en tareas.html */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid;
+}
+
+.badge-info {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #3b82f6 !important;
+    border-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #10b981 !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #f59e0b !important;
+    border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+.badge-primary {
+    background: rgba(123, 58, 237, 0.1) !important;
+    color: #7c3aed !important;
+    border-color: rgba(123, 58, 237, 0.2) !important;
+}
+
+.badge-danger {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Estilos para las tarjetas de proyectos y tareas */
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.space-y-3 > * + * {
+    margin-top: 0.75rem;
+}
+
+.bg-gray-50 {
+    background-color: #f9fafb;
+}
+
+.dark .bg-gray-700 {
+    background-color: #374151;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ml-4 {
+    margin-left: 1rem;
+}
+
+.min-w-0 {
+    min-width: 0;
+}
+
+.flex-1 {
+    flex: 1 1 0%;
+}
+
+/* Ajuste para la alineación sin iconos en proyectos */
+.flex.items-center.space-x-3 {
+    gap: 0.75rem;
+}
+
+/* Quick actions mejorados */
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.quick-action-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.quick-action-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.quick-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(123, 58, 237, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 16px;
+}
+
+.quick-action-text {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .dashboard-columns,
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-grid {
+        gap: 24px;
+    }
+    
+    /* En móvil, mantener buen espaciado entre iconos y títulos */
+    .flex.items-center.gap-4 {
+        gap: 0.75rem !important;
+    }
+    
+    .distribution-container {
+        gap: 16px;
+    }
+    
+    .distribution-bar {
+        height: 10px;
+    }
+}
+</style>
+{% endblock %}

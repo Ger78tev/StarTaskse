@@ -1,0 +1,299 @@
+<!-- [file name]: dashboard.html -->
+{% extends "reportes/base_reportes.html" %}
+
+{% block report_title %}Dashboard de Reportes{% endblock %}
+{% block page_title %}Dashboard de Reportes{% endblock %}
+{% block page_subtitle %}Métricas en tiempo real y análisis del sistema{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="report-card">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-project-diagram text-blue-600 dark:text-blue-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ metricas.total_proyectos }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Proyectos Activos</div>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600 dark:text-green-400">
+                    <i class="fas fa-trending-up mr-1"></i>Todos activos
+                </div>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-tasks text-green-600 dark:text-green-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ metricas.total_tareas }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Total Tareas</div>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600 dark:text-green-400">
+                    <i class="fas fa-chart-line mr-1"></i>{{ metricas.porcentaje_completadas }}% completadas
+                </div>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-check-circle text-purple-600 dark:text-purple-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ metricas.tareas_completadas }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Tareas Completadas</div>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600 dark:text-green-400">
+                    <i class="fas fa-check mr-1"></i>{{ metricas.porcentaje_completadas }}% del total
+                </div>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-users text-orange-600 dark:text-orange-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ metricas.team_members }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Miembros Activos</div>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600 dark:text-green-400">
+                    <i class="fas fa-user-check mr-1"></i>Equipo completo
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Resumen de Progreso -->
+        <div class="report-card">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Resumen de Progreso</h3>
+                
+                <!-- Progreso de Tareas -->
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tareas Completadas</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ metricas.porcentaje_completadas }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                            <div class="bg-green-600 h-3 rounded-full transition-all duration-500" 
+                                 style="width: {{ metricas.porcentaje_completadas }}%"></div>
+                        </div>
+                        <div class="flex justify-between mt-1 text-xs text-gray-500">
+                            <span>{{ metricas.tareas_completadas }} completadas</span>
+                            <span>{{ metricas.total_tareas }} total</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">En Progreso</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ metricas.porcentaje_en_progreso }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full transition-all duration-500" 
+                                 style="width: {{ metricas.porcentaje_en_progreso }}%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Pendientes</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ metricas.porcentaje_pendientes }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-500" 
+                                 style="width: {{ metricas.porcentaje_pendientes }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas en Tiempo Real -->
+        <div class="report-card">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Métricas en Tiempo Real</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-project-diagram text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-xl font-bold text-gray-900 dark:text-white">{{ metricas.total_proyectos }}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Proyectos Activos</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-700">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-xl font-bold text-gray-900 dark:text-white">{{ metricas.porcentaje_completadas }}%</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Tasa de Finalización</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-700">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-xl font-bold text-gray-900 dark:text-white">{{ metricas.team_members }}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Miembros Activos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reportes Disponibles -->
+    <div class="report-card">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Reportes Disponibles</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">Genera y descarga reportes detallados en formato PDF</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for reporte in reportes_disponibles %}
+                <div class="flex items-center space-x-4 p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700">
+                    <div class="w-12 h-12 bg-{{ reporte.color }}-100 dark:bg-{{ reporte.color }}-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-{{ reporte.icono }} text-{{ reporte.color }}-600 dark:text-{{ reporte.color }}-400 text-lg"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-gray-900 dark:text-white truncate">{{ reporte.titulo }}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ reporte.descripcion }}</p>
+                        <div class="flex items-center space-x-3 mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                {% if reporte.estado == 'listo' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
+                                {% elif reporte.estado == 'generando' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300
+                                {% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300{% endif %}">
+                                {{ reporte.estado|title }}
+                            </span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">{{ reporte.tipo }}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-2">
+                        {% if reporte.id == 'proyectos' %}
+                        <button onclick="downloadPDF('{{ url_for('reportes.reporte_proyectos_pdf') }}')" 
+                                class="btn btn-primary btn-sm">
+                            <i class="fas fa-download mr-1"></i>PDF
+                        </button>
+                        {% elif reporte.id == 'tareas' %}
+                        <button onclick="downloadPDF('{{ url_for('reportes.reporte_tareas_pdf') }}')" 
+                                class="btn btn-primary btn-sm">
+                            <i class="fas fa-download mr-1"></i>PDF
+                        </button>
+                        {% elif reporte.id == 'equipo' and current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+                        <button onclick="downloadPDF('{{ url_for('reportes.reporte_equipo_pdf') }}')" 
+                                class="btn btn-primary btn-sm">
+                            <i class="fas fa-download mr-1"></i>PDF
+                        </button>
+                        {% elif reporte.id == 'productividad' %}
+                        <a href="{{ url_for('reportes.productividad') }}" 
+                           class="btn btn-secondary btn-sm">
+                            <i class="fas fa-chart-bar mr-1"></i>Ver Análisis
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividad Reciente -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Proyectos Recientes -->
+        <div class="report-card">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Proyectos Recientes</h3>
+                {% if proyectos_recientes %}
+                <div class="space-y-3">
+                    {% for proyecto in proyectos_recientes %}
+                    <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-500 bg-opacity-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-project-diagram text-blue-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900 dark:text-white">{{ proyecto.nombre }}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ proyecto.lider_nombre }}</div>
+                            </div>
+                        </div>
+                        <span class="badge badge-success">Activo</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-project-diagram text-4xl text-gray-300 mb-2"></i>
+                    <p class="text-gray-500 dark:text-gray-400">No hay proyectos recientes</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tareas Recientes -->
+        <div class="report-card">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tareas Recientes</h3>
+                {% if tareas_recientes %}
+                <div class="space-y-3">
+                    {% for tarea in tareas_recientes %}
+                    <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-500 bg-opacity-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-tasks text-green-500 text-sm"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-gray-900 dark:text-white truncate">{{ tarea.titulo }}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                    {{ tarea.proyecto_nombre }}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="badge badge-{{ 
+                            'success' if tarea.estado == 'completada' 
+                            else 'warning' if tarea.estado == 'en_progreso' 
+                            else 'info' 
+                        }}">
+                            {{ tarea.estado|replace('_', ' ')|title }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-tasks text-4xl text-gray-300 mb-2"></i>
+                    <p class="text-gray-500 dark:text-gray-400">No hay tareas recientes</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Proyectos{% endblock %}
+{% block page_title %}Proyectos{% endblock %}
+{% block page_subtitle %}Gestión de Proyectos del Equipo{% endblock %}
+
+{% block content %}
+
+<!-- ESTILOS PARA EL MODAL QUE CUBRE TODA LA PANTALLA -->
+<style>
+    /* MODAL QUE CUBRE TODA LA PANTALLA - FIXED */
+    .modal-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: rgba(0, 0, 0, 0.8) !important;
+        display: none;
+        justify-content: center !important;
+        align-items: center !important;
+        z-index: 99999 !important;
+        backdrop-filter: blur(5px) !important;
+    }
+
+    .modal-content-editar-proyecto {
+        background: white !important;
+        padding: 2rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+        width: 90% !important;
+        max-width: 600px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        position: relative !important;
+        z-index: 100000 !important;
+        border: 2px solid #7c3aed !important;
+    }
+
+    .modal-content-nuevo-proyecto {
+        background: white !important;
+        padding: 2rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+        width: 90% !important;
+        max-width: 600px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        position: relative !important;
+        z-index: 100000 !important;
+        border: 2px solid #7c3aed !important;
+    }
+
+    .modal-actions {
+        display: flex !important;
+        gap: 1rem !important;
+        justify-content: flex-end !important;
+        margin-top: 1.5rem !important;
+        padding-top: 1.5rem !important;
+        border-top: 1px solid #e5e7eb !important;
+    }
+
+    .btn-confirm {
+        background: #7c3aed !important;
+        color: white !important;
+        padding: 0.75rem 1.5rem !important;
+        border: none !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        font-weight: 600 !important;
+        transition: background 0.2s !important;
+    }
+
+    .btn-confirm:hover {
+        background: #7c3aed !important;
+    }
+
+    .btn-cancel {
+        background: #6b7280 !important;
+        color: white !important;
+        padding: 0.75rem 1.5rem !important;
+        border: none !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        font-weight: 600 !important;
+        transition: background 0.2s !important;
+    }
+
+    .btn-cancel:hover {
+        background: #4b5563 !important;
+    }
+
+    body.modal-open {
+        overflow: hidden !important;
+        height: 100vh !important;
+    }
+
+    .form-group {
+        margin-bottom: 1rem !important;
+    }
+
+    .form-group label {
+        display: block !important;
+        margin-bottom: 0.5rem !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+    }
+
+    .form-control {
+        width: 100% !important;
+        padding: 0.75rem !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 6px !important;
+        font-size: 1rem !important;
+    }
+</style>
+
+<div class="grid gap-6">
+    <!-- Header de Proyectos -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Todos los Proyectos</h2>
+            <p class="text-gray-600 dark:text-gray-400">Gestiona los proyectos del equipo</p>
+        </div>
+        {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+        <button class="btn btn-primary" onclick="abrirModalNuevoProyecto()">
+            <i class="fas fa-plus mr-2"></i>Nuevo Proyecto
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Lista de Proyectos -->
+    {% if proyectos %}
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Lista de Proyectos</div>
+            <div class="card-subtitle">{{ proyectos|length }} proyectos encontrados</div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Líder</th>
+                            <th>Fecha Creación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proyecto in proyectos %}
+                        <tr>
+                            <td>
+                                <div class="font-medium text-gray-900 dark:text-white">{{ proyecto.nombre }}</div>
+                            </td>
+                            <td>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">{{ proyecto.descripcion[:80] }}{% if proyecto.descripcion|length > 80 %}...{% endif %}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary">{{ proyecto.lider_nombre }}</span>
+                            </td>
+                            <td>
+                                <div class="text-sm text-gray-900 dark:text-white">
+                                    {{ proyecto.fecha_creacion.strftime('%d/%m/%Y') }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex gap-2">
+                                    {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+                                    <!-- Botón Editar -->
+                                    <button onclick="abrirModalEditarProyecto(
+                                        {{ proyecto.id }}, 
+                                        '{{ proyecto.nombre }}', 
+                                        '{{ proyecto.descripcion }}'
+                                    )" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <!-- Botón Eliminar -->
+                                    <button onclick="eliminarProyecto({{ proyecto.id }}, '{{ proyecto.nombre }}')" 
+                                            class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Estado Vacío -->
+    <div class="card text-center py-12">
+        <div class="flex flex-col items-center">
+            <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-project-diagram text-4xl text-gray-400"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No hay proyectos creados
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Comienza creando el primer proyecto para el equipo.
+            </p>
+            {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+            <button class="btn btn-primary" onclick="abrirModalNuevoProyecto()">
+                <i class="fas fa-plus mr-2"></i>Crear Primer Proyecto
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODAL GENERAL DE EDICIÓN DE PROYECTO (ÚNICO) -->
+<div id="modalEditarProyecto" class="modal-overlay">
+    <div class="modal-content-editar-proyecto" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 1.5rem; color: #7c3aed; font-size: 1.5rem; font-weight: bold;">Editar Proyecto</h3>
+        
+        <form id="formEditarProyecto" method="POST">
+            <input type="hidden" id="editarProyectoId" name="id">
+            
+            <div class="form-group">
+                <label for="editarProyectoNombre">Nombre *</label>
+                <input type="text" id="editarProyectoNombre" name="nombre" required class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="editarProyectoDescripcion">Descripción</label>
+                <textarea id="editarProyectoDescripcion" name="descripcion" rows="3" class="form-control"></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModalEditarProyecto()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-confirm">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL GENERAL PARA NUEVO PROYECTO (ÚNICO) -->
+<div id="modalNuevoProyecto" class="modal-overlay">
+    <div class="modal-content-nuevo-proyecto" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 1.5rem; color: #7c3aed; font-size: 1.5rem; font-weight: bold;">Crear Nuevo Proyecto</h3>
+        
+        <form method="POST" action="{{ url_for('proyecto.crear_proyecto') }}">
+            <div class="form-group">
+                <label class="form-label">Nombre del Proyecto</label>
+                <input type="text" class="form-control" name="nombre" placeholder="Ej: Desarrollo de Aplicación Móvil" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" name="descripcion" rows="3" placeholder="Describe los objetivos del proyecto..."></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModalNuevoProyecto()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-confirm">
+                    Crear Proyecto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JAVASCRIPT PARA PROYECTOS -->
+<script>
+// Funciones para el modal de edición de proyecto
+function abrirModalEditarProyecto(proyectoId, nombre, descripcion) {
+    console.log('Abriendo modal para proyecto:', proyectoId, nombre);
+    
+    // Llenar el formulario con los datos actuales
+    document.getElementById('editarProyectoId').value = proyectoId;
+    document.getElementById('editarProyectoNombre').value = nombre || '';
+    document.getElementById('editarProyectoDescripcion').value = descripcion || '';
+    
+    // Actualizar el action del formulario
+    const form = document.getElementById('formEditarProyecto');
+    form.action = '/proyectos/editar/' + proyectoId;
+    
+    // Mostrar modal - FORZAR display flex
+    const modal = document.getElementById('modalEditarProyecto');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+    
+    console.log('Modal de edición de proyecto mostrado correctamente');
+}
+
+function cerrarModalEditarProyecto() {
+    const modal = document.getElementById('modalEditarProyecto');
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+}
+
+// Funciones para el modal de nuevo proyecto
+function abrirModalNuevoProyecto() {
+    console.log('Abriendo modal de nuevo proyecto');
+    
+    // Mostrar modal - FORZAR display flex
+    const modal = document.getElementById('modalNuevoProyecto');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+    
+    console.log('Modal de nuevo proyecto mostrado correctamente');
+}
+
+function cerrarModalNuevoProyecto() {
+    const modal = document.getElementById('modalNuevoProyecto');
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+}
+
+// Función para eliminar proyecto con confirmación
+function eliminarProyecto(proyectoId, nombre) {
+    if (confirm('¿Estás seguro de que quieres eliminar el proyecto "' + nombre + '"? Esta acción no se puede deshacer.')) {
+        window.location.href = '/proyectos/eliminar/' + proyectoId;
+    }
+}
+
+// Inicialización cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal de edición de proyecto
+    const modalEditarProyecto = document.getElementById('modalEditarProyecto');
+    const formEditarProyecto = document.getElementById('formEditarProyecto');
+    
+    // Modal de nuevo proyecto
+    const modalNuevoProyecto = document.getElementById('modalNuevoProyecto');
+    
+    console.log('Inicializando modales de proyectos...');
+    
+    // Cerrar modales al hacer clic fuera del contenido
+    if (modalEditarProyecto) {
+        modalEditarProyecto.addEventListener('click', function(event) {
+            if (event.target === modalEditarProyecto) {
+                console.log('Clic fuera del modal de edición de proyecto - cerrando');
+                cerrarModalEditarProyecto();
+            }
+        });
+    }
+    
+    if (modalNuevoProyecto) {
+        modalNuevoProyecto.addEventListener('click', function(event) {
+            if (event.target === modalNuevoProyecto) {
+                console.log('Clic fuera del modal de nuevo proyecto - cerrando');
+                cerrarModalNuevoProyecto();
+            }
+        });
+    }
+    
+    // Cerrar modales con tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modalEditProj = document.getElementById('modalEditarProyecto');
+            const modalNewProj = document.getElementById('modalNuevoProyecto');
+            
+            if (modalEditProj && modalEditProj.style.display === 'flex') {
+                console.log('Tecla Escape - cerrando modal de edición de proyecto');
+                cerrarModalEditarProyecto();
+            }
+            
+            if (modalNewProj && modalNewProj.style.display === 'flex') {
+                console.log('Tecla Escape - cerrando modal de nuevo proyecto');
+                cerrarModalNuevoProyecto();
+            }
+        }
+    });
+    
+    // Manejar envío del formulario de edición de proyecto (envío tradicional)
+    if (formEditarProyecto) {
+        formEditarProyecto.addEventListener('submit', function(event) {
+            // No prevenimos el envío por defecto para que sea tradicional
+            console.log('Formulario de edición de proyecto enviado tradicionalmente');
+            // El formulario se enviará normalmente y recargará la página
+        });
+    }
+});
+</script>
+
+{% endblock %}

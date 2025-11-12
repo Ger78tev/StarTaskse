@@ -1,0 +1,178 @@
+/* [file name]: tareas.css */
+/* static/css/tareas.css */
+.tareas-container {
+    display: grid;
+    gap: 24px;
+}
+
+.tareas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.tareas-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.tareas-table {
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+}
+
+.table-header {
+    background: #f8fafc;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.dark-mode .table-header {
+    background: #1e293b;
+}
+
+.table-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.table-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.table-content {
+    overflow-x: auto;
+}
+
+.tareas-list {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tareas-list th {
+    background: #f8fafc;
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.dark-mode .tareas-list th {
+    background: #1e293b;
+}
+
+.tareas-list td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 14px;
+}
+
+.tareas-list tbody tr:hover {
+    background: #f8fafc;
+}
+
+.dark-mode .tareas-list tbody tr:hover {
+    background: #1e293b;
+}
+
+.tareas-list tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tarea-info {
+    max-width: 300px;
+}
+
+.tarea-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.tarea-description {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.tarea-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Estados y Prioridades */
+.estado-badge, .prioridad-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-pendiente {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.estado-en_progreso {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.estado-completada {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.prioridad-baja {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.prioridad-media {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.prioridad-alta {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tareas-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+    
+    .tareas-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .tareas-list {
+        min-width: 800px;
+    }
+}
+

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso Denegado{% endblock %}
+
+{% block content %}
+<div class="container-fluid text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="error-container">
+                <i class="fas fa-ban fa-5x text-danger mb-4"></i>
+                <h1 class="display-4 fw-bold text-dark">403</h1>
+                <h2 class="h3 text-muted mb-4">Acceso Denegado</h2>
+                <p class="text-muted mb-4">
+                    No tienes permisos para acceder a esta página.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('dashboard.tablero') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Ir al Tablero
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sign-out-alt me-2"></i>Cambiar Usuario
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

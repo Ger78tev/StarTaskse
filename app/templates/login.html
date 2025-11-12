@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarTask - Iniciar Sesión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/login.css') }}" rel="stylesheet">
+</head>
+<body class="login-body {% if config_usuario and config_usuario.tema == 'dark' %}dark-mode{% endif %}">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h1 class="login-title">StarTask</h1>
+                <p class="login-subtitle">Sistema de Gestión de Proyectos</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="login-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <div class="flash-content">
+                                    <i class="fas 
+                                        {% if category == 'success' %}fa-check-circle
+                                        {% elif category == 'danger' %}fa-exclamation-circle
+                                        {% else %}fa-info-circle{% endif %} 
+                                        flash-icon"></i>
+                                    <span class="flash-text">{{ message }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="login-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope form-icon"></i>Email
+                    </label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="tu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock form-icon"></i>Contraseña
+                    </label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Tu contraseña" required>
+                </div>
+
+                <div class="login-options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember_me" name="remember_me" class="remember-checkbox">
+                        <label for="remember_me" class="remember-label">Recordarme</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary login-btn">
+                    <i class="fas fa-sign-in-alt btn-icon"></i>Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p class="footer-text">
+                    ¿No tienes cuenta?
+                </p>
+                <a href="{{ url_for('auth.registro') }}" class="btn btn-secondary register-btn">
+                    <i class="fas fa-user-plus btn-icon"></i>Crear Cuenta
+                </a>
+            </div>
+
+            <div class="demo-users">
+                <h4 class="demo-title"><i class="fas fa-users demo-icon"></i>Usuarios de Prueba:</h4>
+                <div class="demo-user"><strong>gerald@startask.com</strong> / gerald123 (Admin)</div>
+                <div class="demo-user"><strong>david@startask.com</strong> / david123 (Líder)</div>
+                <div class="demo-user"><strong>sebastian@startask.com</strong> / sebastian123 (Colaborador)</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,595 @@
+{% extends "base.html" %}
+
+{% block title %}Chat del Equipo{% endblock %}
+{% block page_title %}Chat del Equipo{% endblock %}
+{% block page_subtitle %}Comunícate con tu equipo en tiempo real{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Columna de Miembros -->
+        <div class="lg:col-span-1">
+            <div class="team-members-card">
+                <div class="team-header">
+                    <h3 class="team-title">Miembros del Equipo</h3>
+                    <span class="team-count">{{ usuarios_activos|length }} miembros</span>
+                </div>
+                <div class="members-list">
+                    {% for usuario in usuarios_activos %}
+                    <div class="member-item">
+                        <div class="member-avatar bg-gradient-to-r 
+                            {% if usuario.rol == 'Administrador' %}from-blue-500 to-blue-600
+                            {% elif usuario.rol == 'Líder de Proyecto' %}from-purple-500 to-purple-600
+                            {% else %}from-green-500 to-green-600{% endif %}">
+                            {{ usuario.nombre[0]|upper }}
+                        </div>
+                        <div class="member-info">
+                            <div class="member-name">{{ usuario.nombre }}</div>
+                            <div class="member-role">{{ usuario.rol }}</div>
+                        </div>
+                        <div class="member-status online"></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna de Chat -->
+        <div class="lg:col-span-3">
+            <div class="chat-interface">
+                <!-- Header del Chat -->
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <h2 class="chat-title">Chat del Equipo</h2>
+                        <p class="chat-subtitle">Comunícate con tu equipo en tiempo real</p>
+                    </div>
+                    <div class="chat-stats">
+                        <div class="message-count">
+                            <i class="fas fa-comments mr-2"></i>
+                            {{ mensajes|length }} mensajes
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Área de Mensajes -->
+                <div class="messages-area">
+                    <div class="messages-container" id="messagesContainer">
+                        {% if mensajes %}
+                            {% for mensaje in mensajes %}
+                            <div class="message-group {% if mensaje.id_usuario == current_user.id %}own-message{% endif %}" 
+                                 id="mensaje-{{ mensaje.id }}">
+                                {% if mensaje.id_usuario != current_user.id %}
+                                <div class="message-sender">
+                                    <div class="sender-avatar bg-gradient-to-r 
+                                        {% if mensaje.usuario_rol == 'Administrador' %}from-blue-500 to-blue-600
+                                        {% elif mensaje.usuario_rol == 'Líder de Proyecto' %}from-purple-500 to-purple-600
+                                        {% else %}from-green-500 to-green-600{% endif %}">
+                                        {{ mensaje.usuario_nombre[0]|upper }}
+                                    </div>
+                                    <span class="sender-name">{{ mensaje.usuario_nombre }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="message-bubble">
+                                    <div class="message-content">
+                                        <p class="message-text">{{ mensaje.mensaje }}</p>
+                                    </div>
+                                    <div class="message-meta">
+                                        <span class="message-time">
+                                            {% if mensaje.fecha_creacion %}
+                                                {{ mensaje.fecha_creacion.strftime('%H:%M') }}
+                                            {% else %}
+                                                {{ mensaje.hora }}
+                                            {% endif %}
+                                        </span>
+                                        {% if mensaje.id_usuario == current_user.id %}
+                                        <span class="message-status">
+                                            <i class="fas fa-check-double text-primary"></i>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if mensaje.id_usuario == current_user.id %}
+                                <div class="message-sender">
+                                    <div class="sender-avatar bg-gradient-to-r from-purple-500 to-purple-600">
+                                        {{ current_user.nombre[0]|upper }}
+                                    </div>
+                                    <span class="sender-name">Tú</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-comments empty-state-icon"></i>
+                                <h3 class="empty-state-title">No hay mensajes</h3>
+                                <p>¡Sé el primero en enviar un mensaje!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Formulario de Envío -->
+                <div class="message-form-container">
+                    <form method="POST" action="{{ url_for('chat.enviar_mensaje') }}" class="message-form" id="messageForm">
+                        <div class="input-group">
+                            <input type="text" 
+                                   name="mensaje" 
+                                   placeholder="Escribe tu mensaje..." 
+                                   class="message-input"
+                                   maxlength="500" 
+                                   required
+                                   id="messageInput">
+                            <div class="input-actions">
+                                <span class="char-count" id="charCount">0/500</span>
+                                <button type="submit" class="send-button" id="sendButton">
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>Enviar</span>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="input-hint">Máximo 500 caracteres</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Tus estilos CSS existentes se mantienen igual */
+    .team-members-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .team-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .team-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .team-count {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .members-list {
+        padding: 1rem;
+    }
+
+    .member-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        margin-bottom: 0.5rem;
+        position: relative;
+    }
+
+    .member-item:hover {
+        background: var(--bg-light);
+    }
+
+    .member-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .member-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .member-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.125rem;
+    }
+
+    .member-role {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .member-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .member-status.online {
+        background: var(--success);
+        box-shadow: 0 0 0 2px var(--bg-card);
+    }
+
+    .member-status.offline {
+        background: var(--text-light);
+        box-shadow: 0 0 0 2px var(--bg-card);
+    }
+
+    /* Estilos para la interfaz de chat */
+    .chat-interface {
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+    }
+
+    .chat-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-card);
+    }
+
+    .chat-info {
+        flex: 1;
+    }
+
+    .chat-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .chat-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .chat-stats {
+        display: flex;
+        align-items: center;
+    }
+
+    .message-count {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: var(--bg-light);
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    /* Área de mensajes */
+    .messages-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg-card) 100%);
+    }
+
+    .messages-container {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .message-group {
+        display: flex;
+        margin-bottom: 1.5rem;
+        align-items: flex-end;
+        gap: 0.75rem;
+    }
+
+    .message-group.own-message {
+        flex-direction: row-reverse;
+    }
+
+    .message-sender {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 60px;
+    }
+
+    .sender-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .sender-name {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-align: center;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+        background: white;
+        border-radius: 18px;
+        padding: 0.75rem 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-light);
+        position: relative;
+    }
+
+    .message-group.own-message .message-bubble {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: white;
+        border: none;
+    }
+
+    .message-content {
+        margin-bottom: 0.5rem;
+    }
+
+    .message-text {
+        font-size: 0.875rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    .message-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .message-time {
+        font-size: 0.7rem;
+    }
+
+    .message-status {
+        margin-left: 0.5rem;
+    }
+
+    /* Formulario de mensaje */
+    .message-form-container {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border-light);
+        background: var(--bg-card);
+    }
+
+    .message-form {
+        max-width: 100%;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: flex-end;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .message-input {
+        flex: 1;
+        border: 2px solid var(--border-light);
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        resize: none;
+        min-height: 44px;
+        max-height: 120px;
+    }
+
+    .message-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(123, 58, 237, 0.1);
+    }
+
+    .input-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .char-count {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .send-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .send-button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .input-hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+
+    /* Estados vacíos */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    /* Scrollbar personalizado */
+    .messages-area::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .messages-area::-webkit-scrollbar-track {
+        background: var(--bg-light);
+        border-radius: 3px;
+    }
+
+    .messages-area::-webkit-scrollbar-thumb {
+        background: var(--border-light);
+        border-radius: 3px;
+    }
+
+    .messages-area::-webkit-scrollbar-thumb:hover {
+        background: var(--text-light);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .grid-cols-1.lg\:grid-cols-4 {
+            grid-template-columns: 1fr;
+        }
+        
+        .chat-interface {
+            height: 500px;
+        }
+        
+        .message-bubble {
+            max-width: 85%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .chat-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .chat-stats {
+            align-self: flex-end;
+        }
+        
+        .input-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .input-actions {
+            justify-content: space-between;
+        }
+        
+        .message-bubble {
+            max-width: 90%;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageInput = document.getElementById('messageInput');
+        const charCount = document.getElementById('charCount');
+        const messagesContainer = document.getElementById('messagesContainer');
+        
+        // Contador de caracteres
+        if (messageInput && charCount) {
+            messageInput.addEventListener('input', function() {
+                const length = this.value.length;
+                charCount.textContent = `${length}/500`;
+                
+                if (length > 450) {
+                    charCount.style.color = '#ef4444';
+                } else if (length > 400) {
+                    charCount.style.color = '#f59e0b';
+                } else {
+                    charCount.style.color = 'var(--text-secondary)';
+                }
+            });
+        }
+        
+        // Auto-scroll al final de los mensajes
+        function scrollToBottom() {
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+        
+        // Scroll al cargar la página
+        scrollToBottom();
+        
+        // También scroll después de un breve delay para asegurar que las imágenes carguen
+        setTimeout(scrollToBottom, 100);
+        
+        // Efecto de enfoque en el input
+        if (messageInput) {
+            messageInput.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            messageInput.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        }
+
+        // Función para actualizar mensajes (podrías implementar AJAX aquí)
+        function actualizarMensajes() {
+            // Esto es opcional - podrías implementar actualización automática con AJAX
+            console.log('Actualizando mensajes...');
+        }
+        
+        // Actualizar cada 10 segundos (opcional)
+        // setInterval(actualizarMensajes, 10000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+<div class="bg-white rounded-xl shadow-sm border {{ class }}">
+    {% if title %}
+    <div class="p-6 border-b">
+        <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+        {% if subtitle %}<p class="text-sm text-gray-600 mt-1">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% endif %}
+    <div class="p-6">
+        {{ content|safe }}
+    </div>
+</div>

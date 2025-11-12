@@ -1,0 +1,774 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Tareas{% endblock %}
+{% block page_title %}Tareas{% endblock %}
+{% block page_subtitle %}{% if current_user.rol == 'Colaborador' %}Mis Tareas Asignadas{% else %}Gestión de Tareas del Equipo{% endif %}{% endblock %}
+
+{% block content %}
+
+<!-- ESTILOS PARA EL MODAL QUE CUBRE TODA LA PANTALLA -->
+<style>
+    /* MODAL QUE CUBRE TODA LA PANTALLA - FIXED */
+    .modal-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: rgba(0, 0, 0, 0.8) !important;
+        display: none;
+        justify-content: center !important;
+        align-items: center !important;
+        z-index: 99999 !important;
+        backdrop-filter: blur(5px) !important;
+    }
+
+    .modal-content-editar {
+        background: white !important;
+        padding: 2rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+        width: 90% !important;
+        max-width: 600px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        position: relative !important;
+        z-index: 100000 !important;
+        border: 2px solid #7c3aed !important;
+    }
+
+    .modal-content-estado {
+        background: white !important;
+        padding: 2rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+        width: 90% !important;
+        max-width: 400px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        position: relative !important;
+        z-index: 100000 !important;
+        border: 2px solid #7c3aed !important;
+    }
+
+    .modal-content-nueva {
+        background: white !important;
+        padding: 2rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+        width: 90% !important;
+        max-width: 600px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        position: relative !important;
+        z-index: 100000 !important;
+        border: 2px solid #7c3aed !important;
+    }
+
+    .modal-actions {
+        display: flex !important;
+        gap: 1rem !important;
+        justify-content: flex-end !important;
+        margin-top: 1.5rem !important;
+        padding-top: 1.5rem !important;
+        border-top: 1px solid #e5e7eb !important;
+    }
+
+    .btn-confirm {
+        background: #7c3aed !important;
+        color: white !important;
+        padding: 0.75rem 1.5rem !important;
+        border: none !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        font-weight: 600 !important;
+        transition: background 0.2s !important;
+    }
+
+    .btn-confirm:hover {
+        background: #7c3aed !important;
+    }
+
+    .btn-cancel {
+        background: #6b7280 !important;
+        color: white !important;
+        padding: 0.75rem 1.5rem !important;
+        border: none !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        font-weight: 600 !important;
+        transition: background 0.2s !important;
+    }
+
+    .btn-cancel:hover {
+        background: #4b5563 !important;
+    }
+
+    body.modal-open {
+        overflow: hidden !important;
+        height: 100vh !important;
+    }
+
+    .form-group {
+        margin-bottom: 1rem !important;
+    }
+
+    .form-group label {
+        display: block !important;
+        margin-bottom: 0.5rem !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+    }
+
+    .form-control {
+        width: 100% !important;
+        padding: 0.75rem !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 6px !important;
+        font-size: 1rem !important;
+    }
+
+    .form-row {
+        display: flex !important;
+        gap: 1rem !important;
+    }
+
+    .form-row .form-group {
+        flex: 1 !important;
+    }
+
+    /* Estilos para los modales antiguos (mantener compatibilidad) */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        background: var(--bg-card);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-xl);
+    }
+</style>
+
+<div class="grid gap-6">
+    <!-- Header de Tareas -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                {% if current_user.rol == 'Colaborador' %}Mis Tareas{% else %}Todas las Tareas{% endif %}
+            </h2>
+            <p class="text-gray-600 dark:text-gray-400">
+                {% if current_user.rol == 'Colaborador' %}Tareas asignadas a ti{% else %}Gestiona las tareas del equipo{% endif %}
+            </p>
+        </div>
+        {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+        <button class="btn btn-primary" onclick="abrirModalNuevaTarea()">
+            <i class="fas fa-plus mr-2"></i>Nueva Tarea
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="grid grid-cols-3 gap-4">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ tareas|selectattr('estado', 'equalto', 'pendiente')|list|length }}</div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ tareas|selectattr('estado', 'equalto', 'en_progreso')|list|length }}</div>
+                <div class="stat-label">En Progreso</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ tareas|selectattr('estado', 'equalto', 'completada')|list|length }}</div>
+                <div class="stat-label">Completadas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Tareas -->
+    {% if tareas %}
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Lista de Tareas</div>
+            <div class="card-subtitle">{{ tareas|length }} tareas encontradas</div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Proyecto</th>
+                            <th>Asignado a</th>
+                            <th>Estado</th>
+                            <th>Prioridad</th>
+                            <th>Vencimiento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tarea in tareas %}
+                        <tr>
+                            <td>
+                                <div class="font-medium text-gray-900 dark:text-white">{{ tarea.titulo }}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">{{ tarea.descripcion[:80] }}{% if tarea.descripcion|length > 80 %}...{% endif %}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary">{{ tarea.proyecto_nombre }}</span>
+                            </td>
+                            <td>
+                                <div class="text-sm text-gray-900 dark:text-white">{{ tarea.asignado_nombre }}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ 
+                                    'success' if tarea.estado == 'completada' 
+                                    else 'warning' if tarea.estado == 'en_progreso' 
+                                    else 'info' 
+                                }}">
+                                    {{ tarea.estado|replace('_', ' ')|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ 
+                                    'danger' if tarea.prioridad == 'alta' 
+                                    else 'warning' if tarea.prioridad == 'media' 
+                                    else 'info' 
+                                }}">
+                                    {{ tarea.prioridad|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-sm text-gray-900 dark:text-white">
+                                    {% if tarea.fecha_vencimiento %}
+                                        {{ tarea.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        <span class="text-gray-400">Sin fecha</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <!-- Botón Cambiar Estado (usar modal general) -->
+                                    <button onclick="abrirModalCambiarEstado(
+                                        {{ tarea.id }}, 
+                                        '{{ tarea.titulo }}', 
+                                        '{{ tarea.estado }}'
+                                    )" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+                                    <!-- Botón Editar (usar modal general) -->
+                                    <button onclick="abrirModalEdicion(
+                                        {{ tarea.id }}, 
+                                        '{{ tarea.titulo }}', 
+                                        '{{ tarea.descripcion }}', 
+                                        '{{ tarea.estado }}',
+                                        {{ tarea.id_proyecto }},
+                                        {{ tarea.id_asignado }},
+                                        '{{ tarea.prioridad }}',
+                                        '{{ tarea.fecha_vencimiento.strftime('%Y-%m-%d') if tarea.fecha_vencimiento else '' }}'
+                                    )" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <!-- Botón Eliminar -->
+                                    <button onclick="eliminarTarea({{ tarea.id }}, '{{ tarea.titulo }}')" 
+                                            class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Estado Vacío -->
+    <div class="card text-center py-12">
+        <div class="flex flex-col items-center">
+            <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-tasks text-4xl text-gray-400"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                {% if current_user.rol == 'Colaborador' %}
+                    No tienes tareas asignadas
+                {% else %}
+                    No hay tareas creadas
+                {% endif %}
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                {% if current_user.rol == 'Colaborador' %}
+                    Cuando te asignen tareas, aparecerán aquí.
+                {% else %}
+                    Comienza creando la primera tarea para el equipo.
+                {% endif %}
+            </p>
+            {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+            <button class="btn btn-primary" onclick="abrirModalNuevaTarea()">
+                <i class="fas fa-plus mr-2"></i>Crear Primera Tarea
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODAL GENERAL PARA CAMBIAR ESTADO (ÚNICO - FUERA DE CUALQUIER CONTENEDOR) -->
+<div id="modalCambiarEstado" class="modal-overlay">
+    <div class="modal-content-estado" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 1.5rem; color: #3b82f6; font-size: 1.5rem; font-weight: bold;">Cambiar Estado</h3>
+        
+        <form id="formCambiarEstado" method="POST">
+            <input type="hidden" id="cambiarEstadoTareaId" name="id">
+            
+            <div class="form-group">
+                <label for="cambiarEstadoEstado">Estado de la Tarea</label>
+                <select id="cambiarEstadoEstado" name="estado" class="form-control" required>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en_progreso">En Progreso</option>
+                    <option value="completada">Completada</option>
+                </select>
+            </div>
+
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Tarea: <strong id="cambiarEstadoTitulo"></strong></p>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModalCambiarEstado()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-confirm">
+                    Actualizar Estado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL GENERAL DE EDICIÓN (ÚNICO - FUERA DE CUALQUIER CONTENEDOR) -->
+<div id="modalEditarTarea" class="modal-overlay">
+    <div class="modal-content-editar" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 1.5rem; color: #7c3aed; font-size: 1.5rem; font-weight: bold;">Editar Tarea</h3>
+        
+        <form id="formEditarTarea">
+            <input type="hidden" id="editarTareaId" name="id">
+            
+            <div class="form-group">
+                <label for="editarTitulo">Título *</label>
+                <input type="text" id="editarTitulo" name="titulo" required class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="editarDescripcion">Descripción</label>
+                <textarea id="editarDescripcion" name="descripcion" rows="3" class="form-control"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editarEstado">Estado</label>
+                    <select id="editarEstado" name="estado" class="form-control">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en_progreso">En Progreso</option>
+                        <option value="completada">Completada</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarPrioridad">Prioridad</label>
+                    <select id="editarPrioridad" name="prioridad" class="form-control">
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editarProyecto">Proyecto</label>
+                    <select id="editarProyecto" name="id_proyecto" class="form-control">
+                        <option value="">Seleccionar proyecto</option>
+                        {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarAsignado">Asignado a</label>
+                    <select id="editarAsignado" name="id_asignado" class="form-control">
+                        <option value="">Seleccionar usuario</option>
+                        {% for usuario in usuarios %}
+                        <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="editarFechaVencimiento">Fecha de Vencimiento</label>
+                <input type="date" id="editarFechaVencimiento" name="fecha_vencimiento" class="form-control">
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModalEdicion()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-confirm">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL GENERAL PARA NUEVA TAREA (ÚNICO - FUERA DE CUALQUIER CONTENEDOR) -->
+<div id="modalNuevaTarea" class="modal-overlay">
+    <div class="modal-content-nueva" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 1.5rem; color: #7c3aed ; font-size: 1.5rem; font-weight: bold;">Crear Nueva Tarea</h3>
+        
+        <form method="POST" action="{{ url_for('tarea.crear_tarea') }}">
+            <div class="form-group">
+                <label class="form-label">Título de la Tarea</label>
+                <input type="text" class="form-control" name="titulo" placeholder="Ej: Diseñar interfaz de usuario" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" name="descripcion" rows="3" placeholder="Describe los detalles de la tarea..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Proyecto</label>
+                    <select class="form-control" name="id_proyecto" required>
+                        <option value="">Seleccionar proyecto...</option>
+                        {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Asignar a</label>
+                    <select class="form-control" name="id_asignado" required>
+                        <option value="">Seleccionar usuario...</option>
+                        {% for usuario in usuarios %}
+                        <option value="{{ usuario.id }}">{{ usuario.nombre }} ({{ usuario.rol }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Prioridad</label>
+                    <select class="form-control" name="prioridad">
+                        <option value="baja">Baja</option>
+                        <option value="media" selected>Media</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha Vencimiento</label>
+                    <input type="date" class="form-control" name="fecha_vencimiento">
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModalNuevaTarea()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-confirm">
+                    Crear Tarea
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JAVASCRIPT CORREGIDO -->
+<script>
+// Funciones para el modal de edición - VERSIÓN CORREGIDA
+function abrirModalEdicion(tareaId, titulo, descripcion, estado, idProyecto, idAsignado, prioridad, fechaVencimiento) {
+    console.log('Abriendo modal para tarea:', tareaId, titulo);
+    
+    // Llenar el formulario con los datos actuales
+    document.getElementById('editarTareaId').value = tareaId;
+    document.getElementById('editarTitulo').value = titulo || '';
+    document.getElementById('editarDescripcion').value = descripcion || '';
+    
+    if (estado) {
+        document.getElementById('editarEstado').value = estado;
+    }
+    
+    if (idProyecto) {
+        document.getElementById('editarProyecto').value = idProyecto;
+    }
+    
+    if (idAsignado) {
+        document.getElementById('editarAsignado').value = idAsignado;
+    }
+    
+    if (prioridad) {
+        document.getElementById('editarPrioridad').value = prioridad;
+    }
+    
+    if (fechaVencimiento) {
+        document.getElementById('editarFechaVencimiento').value = fechaVencimiento;
+    }
+    
+    // Mostrar modal - FORZAR display flex
+    const modal = document.getElementById('modalEditarTarea');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+    
+    console.log('Modal de edición mostrado correctamente');
+}
+
+function cerrarModalEdicion() {
+    const modal = document.getElementById('modalEditarTarea');
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+}
+
+// Funciones para el modal de cambiar estado - VERSIÓN CORREGIDA
+function abrirModalCambiarEstado(tareaId, titulo, estado) {
+    console.log('Abriendo modal de estado para tarea:', tareaId, titulo, estado);
+    
+    // Llenar el formulario con los datos actuales
+    document.getElementById('cambiarEstadoTareaId').value = tareaId;
+    document.getElementById('cambiarEstadoTitulo').textContent = titulo || '';
+    
+    if (estado) {
+        document.getElementById('cambiarEstadoEstado').value = estado;
+    }
+    
+    // Actualizar el action del formulario
+    const form = document.getElementById('formCambiarEstado');
+    form.action = '/tareas/editar/' + tareaId;
+    
+    // Mostrar modal - FORZAR display flex
+    const modal = document.getElementById('modalCambiarEstado');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+    
+    console.log('Modal de estado mostrado correctamente');
+}
+
+function cerrarModalCambiarEstado() {
+    const modal = document.getElementById('modalCambiarEstado');
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+}
+
+// Funciones para el modal de nueva tarea
+function abrirModalNuevaTarea() {
+    console.log('Abriendo modal de nueva tarea');
+    
+    // Mostrar modal - FORZAR display flex
+    const modal = document.getElementById('modalNuevaTarea');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+    
+    console.log('Modal de nueva tarea mostrado correctamente');
+}
+
+function cerrarModalNuevaTarea() {
+    const modal = document.getElementById('modalNuevaTarea');
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+}
+
+// Función para eliminar tarea con confirmación
+function eliminarTarea(tareaId, titulo) {
+    if (confirm('¿Estás seguro de que quieres eliminar la tarea "' + titulo + '"? Esta acción no se puede deshacer.')) {
+        window.location.href = '/tareas/eliminar/' + tareaId;
+    }
+}
+
+// Inicialización cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal de edición
+    const modalEditar = document.getElementById('modalEditarTarea');
+    const formEditar = document.getElementById('formEditarTarea');
+    
+    // Modal de cambiar estado
+    const modalEstado = document.getElementById('modalCambiarEstado');
+    const formEstado = document.getElementById('formCambiarEstado');
+    
+    // Modal de nueva tarea
+    const modalNueva = document.getElementById('modalNuevaTarea');
+    
+    console.log('Inicializando modales...');
+    
+    // Cerrar modales al hacer clic fuera del contenido
+    if (modalEditar) {
+        modalEditar.addEventListener('click', function(event) {
+            if (event.target === modalEditar) {
+                console.log('Clic fuera del modal de edición - cerrando');
+                cerrarModalEdicion();
+            }
+        });
+    }
+    
+    if (modalEstado) {
+        modalEstado.addEventListener('click', function(event) {
+            if (event.target === modalEstado) {
+                console.log('Clic fuera del modal de estado - cerrando');
+                cerrarModalCambiarEstado();
+            }
+        });
+    }
+    
+    if (modalNueva) {
+        modalNueva.addEventListener('click', function(event) {
+            if (event.target === modalNueva) {
+                console.log('Clic fuera del modal de nueva tarea - cerrando');
+                cerrarModalNuevaTarea();
+            }
+        });
+    }
+    
+    // Cerrar modales con tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modalEdit = document.getElementById('modalEditarTarea');
+            const modalState = document.getElementById('modalCambiarEstado');
+            const modalNew = document.getElementById('modalNuevaTarea');
+            
+            if (modalEdit && modalEdit.style.display === 'flex') {
+                console.log('Tecla Escape - cerrando modal de edición');
+                cerrarModalEdicion();
+            }
+            
+            if (modalState && modalState.style.display === 'flex') {
+                console.log('Tecla Escape - cerrando modal de estado');
+                cerrarModalCambiarEstado();
+            }
+            
+            if (modalNew && modalNew.style.display === 'flex') {
+                console.log('Tecla Escape - cerrando modal de nueva tarea');
+                cerrarModalNuevaTarea();
+            }
+        }
+    });
+    
+    // Manejar envío del formulario de edición
+    if (formEditar) {
+        formEditar.addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Formulario de edición enviado');
+            
+            const formData = new FormData(formEditar);
+            const tareaId = formData.get('id');
+            
+            // Mostrar loading
+            const submitBtn = formEditar.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Guardando...';
+            submitBtn.disabled = true;
+            
+            // Enviar datos al servidor
+            fetch('/tareas/actualizar/' + tareaId, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Respuesta del servidor:', data);
+                if (data.success) {
+                    cerrarModalEdicion();
+                    // Mostrar mensaje de éxito
+                    alert('✅ Tarea actualizada correctamente');
+                    // Recargar la página para ver los cambios
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert('❌ ' + (data.message || 'Error al actualizar la tarea'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error de conexión al actualizar la tarea: ' + error.message);
+            })
+            .finally(() => {
+                // Restaurar botón
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+    
+    // Manejar envío del formulario de estado (envío tradicional)
+    if (formEstado) {
+        formEstado.addEventListener('submit', function(event) {
+            // No prevenimos el envío por defecto para que sea tradicional
+            console.log('Formulario de estado enviado tradicionalmente');
+            // El formulario se enviará normalmente y recargará la página
+        });
+    }
+});
+
+// Funciones para los modales antiguos (mantener compatibilidad)
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+</script>
+
+{% endblock %}

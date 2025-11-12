@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarTask - Registro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/registro.css') }}" rel="stylesheet">
+</head>
+<body class="registro-body {% if config_usuario and config_usuario.tema == 'dark' %}dark-mode{% endif %}">
+    <div class="registro-container">
+        <div class="registro-card">
+            <div class="registro-header">
+                <div class="registro-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h1 class="registro-title">StarTask</h1>
+                    <p class="registro-subtitle">Crear Nueva Cuenta</p>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="registro-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <div class="flash-content">
+                                    <i class="fas 
+                                        {% if category == 'success' %}fa-check-circle
+                                        {% elif category == 'danger' %}fa-exclamation-circle
+                                        {% else %}fa-info-circle{% endif %} 
+                                        flash-icon"></i>
+                                    <span class="flash-text">{{ message }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" id="registroForm" class="registro-form">
+                <div class="form-group">
+                    <label for="nombre" class="form-label">
+                        <i class="fas fa-user form-icon"></i>Nombre Completo
+                    </label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Tu nombre completo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope form-icon"></i>Email
+                    </label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock form-icon"></i>Contraseña
+                    </label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Mínimo 6 caracteres" required minlength="6">
+                    <div class="password-strength" id="passwordStrength"></div>
+                    <small class="form-text">La contraseña debe tener al menos 6 caracteres</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmar_password" class="form-label">
+                        <i class="fas fa-lock form-icon"></i>Confirmar Contraseña
+                    </label>
+                    <input type="password" id="confirmar_password" name="confirmar_password" class="form-control" placeholder="Repite tu contraseña" required>
+                    <div class="invalid-feedback" id="passwordError">Las contraseñas no coinciden</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary registro-btn">
+                    <i class="fas fa-user-plus btn-icon"></i>Crear Cuenta
+                </button>
+            </form>
+
+            <div class="registro-footer">
+                <p class="footer-text">
+                    ¿Ya tienes cuenta? 
+                    <a href="{{ url_for('auth.login') }}" class="footer-link">Inicia Sesión</a>
+                </p>
+            </div>
+
+            <div class="registro-terms">
+                <small class="terms-text">
+                    Al registrarte, aceptas nuestros términos y condiciones de uso.
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Validación de fortaleza de contraseña
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrength');
+            
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+            if (password.match(/\d/)) strength++;
+            if (password.match(/[^a-zA-Z\d]/)) strength++;
+            
+            strengthBar.className = 'password-strength';
+            if (password.length === 0) {
+                strengthBar.style.width = '0%';
+            } else if (strength === 1) {
+                strengthBar.className += ' strength-weak';
+            } else if (strength === 2) {
+                strengthBar.className += ' strength-fair';
+            } else if (strength === 3) {
+                strengthBar.className += ' strength-good';
+            } else if (strength >= 4) {
+                strengthBar.className += ' strength-strong';
+            }
+        });
+
+        // Validación de confirmación de contraseña
+        document.getElementById('confirmar_password').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const errorDiv = document.getElementById('passwordError');
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.classList.add('is-invalid');
+                errorDiv.style.display = 'block';
+            } else {
+                this.classList.remove('is-invalid');
+                errorDiv.style.display = 'none';
+            }
+        });
+
+        // Validación del formulario
+        document.getElementById('registroForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmar_password').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                document.getElementById('confirmar_password').classList.add('is-invalid');
+                document.getElementById('passwordError').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

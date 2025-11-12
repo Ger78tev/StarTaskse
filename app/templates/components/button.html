@@ -1,0 +1,6 @@
+<button type="{{ type|default('button') }}" 
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary {{ class }}"
+        {{ extra_attrs }}>
+    {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+    {{ text }}
+</button>

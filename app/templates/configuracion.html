@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración{% endblock %}
+{% block page_title %}Configuración del Sistema{% endblock %}
+{% block page_subtitle %}Personaliza tu experiencia en StarTask{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Configuración de Tema -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Preferencias de Tema</h3>
+        <div class="flex items-center space-x-4">
+            <button onclick="setTheme('light')" 
+                    class="flex-1 p-4 border-2 rounded-lg text-center hover:border-primary transition-colors {% if config_usuario.tema == 'light' %}border-primary bg-primary bg-opacity-5{% else %}border-gray-200 dark:border-gray-600{% endif %}">
+                <i class="fas fa-sun text-2xl text-yellow-500 mb-2"></i>
+                <p class="font-medium text-gray-900 dark:text-white">Modo Claro</p>
+            </button>
+            
+            <button onclick="setTheme('dark')" 
+                    class="flex-1 p-4 border-2 rounded-lg text-center hover:border-primary transition-colors {% if config_usuario.tema == 'dark' %}border-primary bg-primary bg-opacity-5{% else %}border-gray-200 dark:border-gray-600{% endif %}">
+                <i class="fas fa-moon text-2xl text-indigo-500 mb-2"></i>
+                <p class="font-medium text-gray-900 dark:text-white">Modo Oscuro</p>
+            </button>
+            
+            <button onclick="setTheme('auto')" 
+                    class="flex-1 p-4 border-2 rounded-lg text-center hover:border-primary transition-colors {% if config_usuario.tema == 'auto' %}border-primary bg-primary bg-opacity-5{% else %}border-gray-200 dark:border-gray-600{% endif %}">
+                <i class="fas fa-desktop text-2xl text-gray-500 mb-2"></i>
+                <p class="font-medium text-gray-900 dark:text-white">Automático</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- Configuración de Cuenta -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Configuración de Cuenta</h3>
+        <form method="POST" action="{{ url_for('configuracion.actualizar_cuenta') }}">
+            <div class="space-y-4">
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre Completo</label>
+                    <input type="text" id="nombre" name="nombre" value="{{ current_user.nombre }}" 
+                           class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                    <input type="email" id="email" name="email" value="{{ current_user.email }}" 
+                           class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                </div>
+                
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Actualizar Cuenta
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function setTheme(theme) {
+    // Cambiar tema inmediatamente
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+    } else if (theme === 'light') {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+    } else {
+        // Auto - seguir preferencia del sistema
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('theme', 'auto');
+    }
+    
+    // Actualizar icono del botón de tema
+    const themeButton = document.getElementById('themeToggle');
+    const icon = themeButton.querySelector('i');
+    if (document.documentElement.classList.contains('dark')) {
+        icon.className = 'fas fa-sun text-gray-600 dark:text-gray-300';
+    } else {
+        icon.className = 'fas fa-moon text-gray-600 dark:text-gray-300';
+    }
+    
+    // Enviar al servidor (opcional)
+    fetch('{{ url_for("configuracion.actualizar_tema") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'tema=' + theme
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,219 @@
+<!-- [file name]: base_reportes.html -->
+<!DOCTYPE html>
+<html lang="es" class="{% if config_usuario and config_usuario.tema == 'dark' %}dark-mode{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarTask Reportes - {% block report_title %}Análisis y Métricas{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+    <style>
+        .report-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-highlight {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .dark-mode .metric-highlight {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border-color: #3b82f6;
+        }
+        
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .report-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .kpi-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+        
+        .kpi-excelente { background: #dcfce7; color: #166534; }
+        .kpi-bueno { background: #fef3c7; color: #92400e; }
+        .kpi-mejorable { background: #fee2e2; color: #991b1b; }
+        
+        .dark-mode .kpi-excelente { background: #14532d; color: #bbf7d0; }
+        .dark-mode .kpi-bueno { background: #713f12; color: #fde68a; }
+        .dark-mode .kpi-mejorable { background: #7f1d1d; color: #fecaca; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="app-container">
+    <!-- Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>StarTask</h1>
+                    <p>Módulo de Reportes</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('reportes.dashboard') }}" class="nav-item {% if request.endpoint == 'reportes.dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard Reportes</span>
+            </a>
+            
+            <a href="{{ url_for('reportes.productividad') }}" class="nav-item {% if request.endpoint == 'reportes.productividad' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Métricas Productividad</span>
+            </a>
+            
+            <div class="nav-section">
+                <span class="nav-section-title">Reportes PDF</span>
+                
+                <a href="{{ url_for('reportes.reporte_proyectos_pdf') }}" class="nav-item" target="_blank">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Reporte Proyectos</span>
+                </a>
+                
+                <a href="{{ url_for('reportes.reporte_tareas_pdf') }}" class="nav-item" target="_blank">
+                    <i class="fas fa-tasks"></i>
+                    <span>Reporte Tareas</span>
+                </a>
+                
+                {% if current_user.rol in ['Administrador', 'Líder de Proyecto'] %}
+                <a href="{{ url_for('reportes.reporte_equipo_pdf') }}" class="nav-item" target="_blank">
+                    <i class="fas fa-users"></i>
+                    <span>Reporte Equipo</span>
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="nav-section">
+                <span class="nav-section-title">Navegación</span>
+                
+                <a href="{{ url_for('dashboard.tablero') }}" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Volver al Tablero</span>
+                </a>
+                
+                <a href="{{ url_for('proyecto.listar_proyectos') }}" class="nav-item">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Proyectos</span>
+                </a>
+                
+                <a href="{{ url_for('tarea.listar_tareas') }}" class="nav-item">
+                    <i class="fas fa-tasks"></i>
+                    <span>Tareas</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="main-header">
+            <div class="header-content">
+                <div class="page-title">
+                    <h1>{% block page_title %}Sistema de Reportes{% endblock %}</h1>
+                    <p>{% block page_subtitle %}Análisis y métricas avanzadas{% endblock %}</p>
+                </div>
+                
+                <div class="header-actions">
+                    <div class="export-options">
+                        {% block export_buttons %}{% endblock %}
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-clock mr-1"></i>
+                            {{ now.strftime('%d/%m/%Y %H:%M') if now else '' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-area">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <div class="flash-content">
+                                    <i class="fas 
+                                        {% if category == 'success' %}fa-check-circle
+                                        {% elif category == 'danger' %}fa-exclamation-circle
+                                        {% elif category == 'warning' %}fa-exclamation-triangle
+                                        {% else %}fa-info-circle{% endif %} 
+                                        flash-icon"></i>
+                                    <span class="flash-text">{{ message }}</span>
+                                </div>
+                                <button onclick="this.parentElement.remove()" class="flash-close">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Page Content -->
+            <div class="page-content animate-fade-in">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Funciones utilitarias para reportes
+        function formatNumber(num) {
+            return new Intl.NumberFormat('es-ES').format(num);
+        }
+        
+        function downloadPDF(url) {
+            window.open(url, '_blank');
+        }
+        
+        function updateLiveMetrics() {
+            fetch('/reportes/api/metricas')
+                .then(response => response.json())
+                .then(data => {
+                    // Actualizar métricas en tiempo real
+                    console.log('Métricas actualizadas:', data);
+                })
+                .catch(error => console.error('Error actualizando métricas:', error));
+        }
+        
+        // Actualizar cada 30 segundos
+        setInterval(updateLiveMetrics, 30000);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

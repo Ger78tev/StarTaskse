@@ -1,0 +1,116 @@
+/* app/static/css/auth.css */
+.auth-body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.logo {
+    color: #667eea;
+    font-size: 3rem;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.password-strength {
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 8px;
+    transition: all 0.3s ease;
+}
+
+.strength-weak { 
+    background: linear-gradient(90deg, #dc3545, #e35d6a);
+    width: 25%; 
+}
+
+.strength-fair { 
+    background: linear-gradient(90deg, #ffc107, #ffd54f);
+    width: 50%; 
+}
+
+.strength-good { 
+    background: linear-gradient(90deg, #28a745, #4caf50);
+    width: 75%; 
+}
+
+.strength-strong { 
+    background: linear-gradient(90deg, #20c997, #4cdbc4);
+    width: 100%; 
+}
+
+.form-control {
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-weight: 600;
+    color: #667eea;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@media (max-width: 576px) {
+    .auth-card {
+        margin: 20px;
+        padding: 20px !important;
+    }
+    
+    .logo {
+        font-size: 2.5rem;
+    }
+}
